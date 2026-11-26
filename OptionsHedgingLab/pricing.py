@@ -4,9 +4,9 @@ from dataclasses import dataclass
 from math import erfc, exp, isfinite, log, pi, sqrt
 from typing import Literal
 
-@dataclass(frozen = True)
+@dataclass(frozen=True)
 class OptionQuote:
-    """Price and sensities per share for the holder of the option"""
+    """Price and senstitivities per share for the holder of the option"""
 
     price: float
     delta: float 
@@ -22,7 +22,7 @@ def _check_spot_and_strike(stock_price: float, strike: float) -> None:
         raise ValueError("strike must be finite and positive")
 
 def call_payoff(stock_price: float, strike: float) -> float:
-    """Cash owed per shate to the call holder at expiration""" 
+    """Cash owed per share to the call holder at expiration""" 
     _check_spot_and_strike(stock_price, strike)
     return max(stock_price - strike, 0.0)
 
