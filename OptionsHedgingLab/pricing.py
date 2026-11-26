@@ -51,3 +51,49 @@ def black_scholes(
     Vega is per 1.0 change in volatility. Theta is per year of elapsed time.
     At expiration, settle with call_payoff or put_payoff.
     """
+
+    if option_type not in("call", "put"):
+        raise ValueError("option_type must be 'call' or 'put'")
+
+    _check_spot_and_strike(stock_price, strike)
+    if stock_price == 0:
+        raise ValueError("stock price must be positive for pre-expiry pricing")
+    if not isfinite(time_to_expiry) or time_to_expiry <= 0:
+        raise ValueError("time_to_expiry must be finite and positive")
+    if not isfinite(volatility) or volatility <= 0:
+        raise ValueError("volatility must be finite and positive")
+    if not isfinite(rate):
+        raise ValueError("rate must be finite")
+
+    sqrt_time = sqrt(time_to_expiry)
+    total_vol = volatility * sqrt_time
+    discounted_strike = strike * exp(-rate * time_to_expiry)
+
+    d1 = (log(stock_price / strike) + rate * time_to_expiry) / total_vol
+    d1 += 0.5 * total_vol
+    d2 = d1 - total_vol
+    density = exp(-0.5 * d1**2) / sqrt(2.0 * pi)
+
+    # These terms are shared by calls and puts with the same inputs.
+    gamma = density / (stock_price * total_vol)
+    vega = stock_price * density * sqrt_time
+    time_decay = -stock_price * density * volatility / (2.0 * sqrt_time)
+
+    if option_type == "call":
+        delta = _normal_cdf(d1)
+        exercise_probability = _normal_cdf(d2)
+        price = stock_price * delta - discounted_strike * exercise_probability
+        theta = time_decay - rate * discounted_strike * exercise_probability
+    else:
+        delta = -_normal_cdf(-d1)
+        exercise_probability = _normal_cdf(-d2)
+        price = discounted_strike * exercise_probability + stock_price * delta
+        theta = time_decay + rate * discounted_strike * exercise_probability
+
+    return OptionQuote(price=price, delta=delta, gamma=gamma, vega=vega, theta=theta)
+
+    
+
+
+
+
