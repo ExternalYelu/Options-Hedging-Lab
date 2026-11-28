@@ -49,7 +49,7 @@ def simulate_gbm_path(
     for step in range(1, steps + 1):
         log_return = rng.gauss(log_return_mean, log_return_std)
         price *= exp(log_return)
-        if not isfinite(price or price <= 0):
+        if not isfinite(price) or price <= 0:
             raise OverflowError("Simulated price is outside the positive float range")
 
         elapsed_years = time_to_expiry * (step / steps)
